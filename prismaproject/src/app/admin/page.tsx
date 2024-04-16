@@ -14,6 +14,7 @@ async function getSales() {
     _sum: { pricePaidInCent: true },
     _count: true,
   });
+  await wait(2000);
   return {
     totalAmount: (data._sum.pricePaidInCent || 0) / 100,
     amountOfOrders: data._count,
@@ -34,10 +35,18 @@ async function getUserData() {
         : (avgOrderValue._sum.pricePaidInCent || 0) / userCount / 100,
   };
 }
+async function getProductData() {
+  const [activeCount, inactiveCount] = await Promise.all([
+    db.product.count({ where: { isAvailableForPurchase: true } }),
+    db.product.count({ where: { isAvailableForPurchase: false } }),
+  ]);
+  return { activeCount, inactiveCount };
+}
 
 const AdminDashboard = async () => {
   const salesData = await getSales();
   const userData = await getUserData();
+  const productData = await getProductData();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <CardComponent
@@ -51,6 +60,12 @@ const AdminDashboard = async () => {
           userData.averageValuePerUser
         )} Average Value`}
         footer={formatNumber(userData.userCount)}
+        description={0}
+      />
+      <CardComponent
+        title="Active Products"
+        content={`${formatNumber(productData.inactiveCount)}Inactive`}
+        footer={formatNumber(productData.activeCount)}
         description={0}
       />
     </div>
@@ -80,6 +95,7 @@ export function CardComponent(card: card) {
     </>
   );
 }
-function _sum(_sum: any, arg1: { pricePaidInCents: boolean }) {
-  throw new Error("Function not implemented.");
+
+export function wait(duration: number) {
+  return new Promise((resolve) => setTimeout(resolve, duration));
 }
