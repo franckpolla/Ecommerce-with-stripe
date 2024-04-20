@@ -2,7 +2,6 @@ import React from "react";
 import PageHeader from "../_component/PageHeader";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
 import {
   Table,
   TableBody,
@@ -11,8 +10,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import db from "@/db/db";
+import { CheckCircle2, MoreVertical, XCircle } from "lucide-react";
+import { formatCurrency, formatNumber } from "@/lib/formater";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export function productTable() {
+export async function productTable() {
+  const products = await db.product.findMany({
+    select: {
+      id: true,
+      name: true,
+      priceInCents: true,
+      isAvailableForPurchase: true,
+      _count: { select: { orders: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+  if (products.length === 0) return <div>No Products Found</div>;
+
   return (
     <>
       <Table>
@@ -28,12 +48,42 @@ export function productTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell className="font-medium">INV001</TableCell>
-            <TableCell>Paid</TableCell>
-            <TableCell>Credit Card</TableCell>
-            <TableCell className="text-right">$250.00</TableCell>
-          </TableRow>
+          {products.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell>
+                {product.isAvailableForPurchase ? (
+                  <>
+                    <span className="sr-only"> Available </span>
+                    <CheckCircle2 />
+                  </>
+                ) : (
+                  <>
+                    <span className="sr-only"> Unavailable </span>
+                    <XCircle />
+                  </>
+                )}
+              </TableCell>
+              <TableCell>{product.name} </TableCell>
+              <TableCell>
+                {formatCurrency(product.priceInCents / 100)}{" "}
+              </TableCell>
+              <TableCell>{formatNumber(product._count.orders)}</TableCell>
+              <TableCell></TableCell>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <MoreVertical />
+                  <span className="sr-only">Actions</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <a download href={`admin/products/${product.id}/download`}>
+                      Download
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </>

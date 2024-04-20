@@ -1,37 +1,71 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/formater";
 import React, { useState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
+import addProduct from "../../_action/product";
 
 const ProductForm = () => {
-  const [priceIncents, setPriceIncents] = useState<number>();
+  const [error, action] = useFormState(addProduct, {});
+  const [priceInCents, setPriceInCents] = useState<number | undefined>();
   return (
-    <form className="space-y-8">
+    <form action={action} className="space-y-8">
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input type="text" id="name" name="name" required />
+        {error.name && <div className="text-destructive"> {error.name}</div>}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="priceUncents">Price In cents</Label>
+        <Label htmlFor="priceInCents">Price In cents</Label>
         <Input
           type=" number"
-          id="priceIncents"
-          name="priceIncents"
+          id="priceInCents"
+          name="priceInCents"
           required
-          value={priceIncents}
-          onChange={(e) => setPriceIncents(Number(e.target.value) || undefined)}
+          value={priceInCents}
+          onChange={(e) => setPriceInCents(Number(e.target.value) || undefined)}
         />
       </div>
       <div className="text-muted-foreground">
-        {formatCurrency((priceIncents || 0) / 100)}
+        {formatCurrency((priceInCents || 0) / 100)}
       </div>
+      {error.priceInCents && (
+        <div className="text-destructive"> {error.priceInCents}</div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <Input type="text" id="description" name="description" required />
+        <Textarea id="description" name="description" required />
+        {error.description && (
+          <div className="text-destructive"> {error.description}</div>
+        )}
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="file">File</Label>
+        <Input type="file" id="file" name="file" required />
+        {error.file && <div className="text-destructive"> {error.file}</div>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="Image">Image</Label>
+        <Input type="file" id="image" name="image" required />
+        {error.image && <div className="text-destructive"> {error.image}</div>}
+      </div>
+      {submitButton()}
     </form>
   );
 };
 
 export default ProductForm;
+
+function submitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? "saving..." : "Save"}
+    </Button>
+  );
+}
