@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import PageHeader from "../_component/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  ActiveToggleDropdownItem,
+  DeleteDropdownItem,
+} from "./_component/ProductAction";
 
 export async function productTable() {
   const products = await db.product.findMany({
@@ -68,20 +73,37 @@ export async function productTable() {
                 {formatCurrency(product.priceInCents / 100)}{" "}
               </TableCell>
               <TableCell>{formatNumber(product._count.orders)}</TableCell>
-              <TableCell></TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <MoreVertical />
-                  <span className="sr-only">Actions</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>
-                    <a download href={`admin/products/${product.id}/download`}>
-                      Download
-                    </a>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <MoreVertical />
+                    <span className="sr-only">Actions</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem asChild>
+                      <a
+                        download
+                        href={`admin/products/${product.id}/download`}
+                      >
+                        Download
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/products/${product.id}/edit`}>
+                        Edit
+                      </Link>
+                    </DropdownMenuItem>
+                    <ActiveToggleDropdownItem
+                      id={product.id}
+                      isAVailableForPurchase={product.isAvailableForPurchase}
+                    />
+                    <DeleteDropdownItem
+                      id={product.id}
+                      disabled={product._count}
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
